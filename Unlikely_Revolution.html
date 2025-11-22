@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>An Unlikely Revolution: Modern Türkiye</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel Standalone for in-browser JSX/TS compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              serif: ['"Playfair Display"', 'serif'],
+              sans: ['"Inter"', 'sans-serif'],
+            },
+            colors: {
+              paper: {
+                light: '#F9F8F4',
+                DEFAULT: '#F0EFE9',
+                dark: '#E6E4DC'
+              },
+              ink: {
+                light: '#44403C',
+                DEFAULT: '#1C1917',
+                accent: '#9F1239'
+              },
+              turk: {
+                red: '#C8102E',
+                turquoise: '#00909E'
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <style>
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 100px;
+      }
+      body {
+        background-color: #F9F8F4;
+        color: #1C1917;
+      }
+      /* Hide scrollbar for clean UI but allow scroll */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #F0EFE9; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #D6D3C9; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #9F1239; 
+      }
+    </style>
+
+    <!-- Import Map for Modules -->
+    <!-- To make this TRULY offline, download these files locally and update the paths below. -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "three": "https://esm.sh/three@0.160.0",
+        "@react-three/fiber": "https://esm.sh/@react-three/fiber@8.15.12?external=react,react-dom,three",
+        "@react-three/drei": "https://esm.sh/@react-three/drei@9.96.1?external=react,react-dom,three,@react-three/fiber",
+        "framer-motion": "https://esm.sh/framer-motion@10.18.0?external=react,react-dom",
+        "lucide-react": "https://esm.sh/lucide-react@0.309.0?external=react,react-dom"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Application Logic -->
+    <script type="text/babel" data-type="module" data-presets="react,typescript">
+      import React, { useState, useEffect, useRef } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import { Canvas, useFrame } from '@react-three/fiber';
+      import { Float, MeshDistortMaterial, Plane } from '@react-three/drei';
+      import { ArrowDown, Menu, X, BookOpen, Quote, User, Users, Shield, Book, Building2, Wheat } from 'lucide-react';
+      import { motion } from 'framer-motion';
+      import * as THREE from 'three';
+
+      // --- COMPONENTS/QUANTUMSCENE ---
+
+      const Terrain = () => {
+        const ref = useRef(null);
+        
+        useFrame((state) => {
+          if (ref.current) {
+             const t = state.clock.getElapsedTime();
+             ref.current.position.y = Math.sin(t * 0.1) * 0.2 - 1.5;
+             ref.current.rotation.z = Math.sin(t * 0.05) * 0.1;
+          }
+        });
+
+        return (
+          <group rotation={[-Math.PI / 2.5, 0, 0]}>
+              <Plane ref={ref} args={[20, 20, 64, 64]}>
+                <MeshDistortMaterial
+                  color="#d6d3c9"
+                  speed={0.5}
+                  distort={0.3}
+                  roughness={0.6}
+                  metalness={0.1}
+                  wireframe={true}
+                />
+              </Plane>
+          </group>
+        );
+      };
+
+      const FloatingParticle = ({ position, color, scale = 1 }) => {
+          const ref = useRef(null);
+          useFrame((state) => {
+              if (ref.current) {
+                  ref.current.rotation.x += 0.01;
+                  ref.current.rotation.y += 0.01;
+              }
+          });
+          
+          return (
+              <Float speed={1} rotationIntensity={1} floatIntensity={2}>
+                  <mesh ref={ref} position={position} scale={scale}>
+                      <icosahedronGeometry args={[0.5, 0]} />
+                      <meshStandardMaterial color={color} transparent opacity={0.6} roughness={0} />
+                  </mesh>
+              </Float>
+          )
+      }
+
+      const HistoryScene = () => {
+        return (
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+              <ambientLight intensity={0.8} />
+              <pointLight position={[10, 10, 10]} intensity={1} color="#F9F8F4" />
+              <spotLight position={[-5, 5, -5]} intensity={1.5} color="#9F1239" angle={0.5} penumbra={1} />
+              
+              <Terrain />
+              
+              <FloatingParticle position={[2, 1, 0]} color="#9F1239" scale={0.4} />
+              <FloatingParticle position={[-2, -1, 1]} color="#1C1917" scale={0.3} />
+              <FloatingParticle position={[0, 2, -2]} color="#C5A059" scale={0.5} />
+
+              <fog attach="fog" args={['#F9F8F4', 2, 12]} />
+            </Canvas>
+          </div>
+        );
+      };
+
+      // --- COMPONENTS/DIAGRAMS ---
+
+      const SocialStructureDiagram = () => {
+        const [period, setPeriod] = useState('ottoman');
+
+        const getContent = () => {
+          switch(period) {
+              case 'ottoman':
+                  return {
+                      center: [
+                          { icon: Shield, text: "Military-Bureaucrats", style: "text-ink" },
+                          { icon: Book, text: "Ulema (Religious Elite)", style: "text-ink" }
+                      ],
+                      periphery: [
+                          { icon: Wheat, text: "Peasantry", sub: "" },
+                          { icon: Users, text: "Local Notables (Ayan)", sub: "" },
+                          { icon: Book, text: "Tarikats", sub: "(Religious Orders)" }
+                      ],
+                      centerLabel: "The Center",
+                      centerSub: "Sublime Porte",
+                      desc: "Strict separation between the Ruling Elite and the Periphery. The State relied on Notables to control masses."
+                  };
+              case 'republic':
+                  return {
+                       center: [
+                          { icon: Shield, text: "Secular Bureaucracy", style: "text-ink" },
+                          { icon: Book, text: "Ulema", style: "text-stone-300 line-through decoration-red-500 opacity-50" }
+                      ],
+                      periphery: [
+                          { icon: Wheat, text: "Peasantry", sub: "(Alienated)" },
+                          { icon: Book, text: "Tarikats", sub: "(Suppressed)" }
+                      ],
+                      centerLabel: "Secular Center",
+                      centerSub: "Ankara",
+                      desc: "State excludes Religion. Ulema removed from power. Periphery is isolated from the center."
+                  };
+              case 'post_wwii':
+                   return {
+                       center: [
+                          { icon: Shield, text: "Bureaucracy", style: "text-ink" },
+                          { icon: Users, text: "Landlords (DP)", style: "text-ink-accent font-bold" }
+                      ],
+                      periphery: [
+                          { icon: Wheat, text: "Migrating Peasantry", sub: "(Vote Bank)" },
+                          { icon: Book, text: "Religious Revival", sub: "(Visible again)" }
+                      ],
+                      centerLabel: "Multi-Party Center",
+                      centerSub: "Populism",
+                      desc: "Landlords and Democrat politicians bridge the gap. Peasants begin migration to cities."
+                  };
+              case 'interventions':
+                    return {
+                       center: [
+                          { icon: Shield, text: "Military Guardians", style: "text-ink" },
+                          { icon: Users, text: "Technocrats", style: "text-ink" }
+                      ],
+                      periphery: [
+                          { icon: Building2, text: "Urban Poor", sub: "(Gecekondu)" },
+                          { icon: Book, text: "Politicized Islam", sub: "(Milli Görüş)" }
+                      ],
+                      centerLabel: "Fractured Center",
+                      centerSub: "Ideological Conflict",
+                      desc: "Rapid urbanization creates 'Urban Poor' class. Islam becomes a mobilized political ideology."
+                  };
+              case 'post_1980':
+                    return {
+                       center: [
+                          { icon: Shield, text: "Turkish-Islamic Synthesis", style: "text-ink-accent font-bold" },
+                          { icon: Building2, text: "Contractor Bourgeoisie", style: "text-ink" }
+                      ],
+                      periphery: [
+                          { icon: Users, text: "Integrated Masses", sub: "" }
+                      ],
+                      centerLabel: "Synthesized Center",
+                      centerSub: "Neoliberal & Conservative",
+                      desc: "Islamism absorbed into the State/Center. The Periphery moves to the Center via economy & politics."
+                  };
+              default: return { center: [], periphery: [], centerLabel: "", centerSub: "", desc: "" };
+          }
+        }
+
+        const content = getContent();
+
+        return (
+          <div className="flex flex-col items-center p-6 md:p-8 bg-paper-light rounded-xl shadow-sm border border-stone-300 my-8 relative overflow-hidden transition-all">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-stone-300 via-ink-accent to-stone-300"></div>
+            
+            <h3 className="font-serif text-2xl mb-2 text-ink">Social Structure Model</h3>
+            <p className="text-xs text-stone-500 mb-6 font-serif italic">Visualizing the Center-Periphery Relations</p>
+            
+            <div className="flex flex-wrap justify-center gap-2 mb-8 w-full px-2">
+                {[
+                    { id: 'ottoman', label: 'Late Ottoman' },
+                    { id: 'republic', label: 'Early Republic' },
+                    { id: 'post_wwii', label: '1945-1960' },
+                    { id: 'interventions', label: '1960-1980' },
+                    { id: 'post_1980', label: 'Post-1980' }
+                ].map((btn) => (
+                  <button 
+                      key={btn.id}
+                      onClick={() => setPeriod(btn.id)}
+                      className={`px-3 py-1 text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all rounded-full border ${period === btn.id ? 'bg-ink text-white border-ink shadow-md' : 'bg-transparent text-stone-500 border-stone-300 hover:border-ink'}`}
+                  >
+                      {btn.label}
+                  </button>
+                ))}
+            </div>
+            
+            <div className="relative w-full max-w-md aspect-square bg-[#F0EFE9] rounded-full border-2 border-dashed border-stone-300 flex items-center justify-center p-4 md:p-8 transition-colors duration-500">
+               
+               <div className="absolute inset-0 w-full h-full">
+                  {content.periphery[0] && (
+                      <motion.div 
+                          key={`p1-${period}`}
+                          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                          className="absolute top-6 left-1/2 -translate-x-1/2 flex flex-col items-center text-center"
+                      >
+                          {React.createElement(content.periphery[0].icon, { size: 20, className: "text-stone-500 mb-1" })}
+                          <span className="text-xs font-bold text-stone-600 uppercase">{content.periphery[0].text}</span>
+                          <span className="text-[10px] text-stone-400">{content.periphery[0].sub}</span>
+                      </motion.div>
+                  )}
+                  
+                  {content.periphery[1] && (
+                      <motion.div 
+                          key={`p2-${period}`}
+                          initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                          className="absolute bottom-12 left-4 md:left-8 flex flex-col items-center text-center max-w-[100px]"
+                      >
+                          {React.createElement(content.periphery[1].icon, { size: 20, className: "text-stone-500 mb-1" })}
+                          <span className="text-xs font-bold text-stone-600 uppercase">{content.periphery[1].text}</span>
+                          <span className="text-[10px] text-stone-400">{content.periphery[1].sub}</span>
+                      </motion.div>
+                  )}
+
+                   {content.periphery[2] && (
+                      <motion.div 
+                          key={`p3-${period}`}
+                          initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
+                          className="absolute bottom-12 right-4 md:right-8 flex flex-col items-center text-center max-w-[100px]"
+                      >
+                          {React.createElement(content.periphery[2].icon, { size: 20, className: "text-stone-500 mb-1" })}
+                          <span className="text-xs font-bold text-stone-600 uppercase">{content.periphery[2].text}</span>
+                          <span className="text-[10px] text-stone-400">{content.periphery[2].sub}</span>
+                      </motion.div>
+                  )}
+
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-widest font-bold text-stone-400">
+                      The Periphery
+                  </div>
+               </div>
+
+               <motion.div 
+                  layout
+                  className="relative z-10 w-40 h-40 md:w-48 md:h-48 bg-white rounded-full shadow-lg border-4 border-ink flex flex-col items-center justify-center gap-2 p-2 text-center overflow-hidden"
+               >
+                   <span className="text-[9px] uppercase tracking-widest font-bold text-ink-accent absolute top-3">{content.centerLabel}</span>
+                   
+                   {content.center.map((item, idx) => (
+                       <motion.div 
+                          key={`c-${period}-${idx}`}
+                          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                          className={`flex flex-col items-center ${item.style}`}
+                       >
+                          <item.icon size={16} />
+                          <span className="text-[10px] md:text-xs font-bold leading-tight">{item.text}</span>
+                       </motion.div>
+                   ))}
+
+                   <span className="text-[9px] text-stone-400 absolute bottom-3">{content.centerSub}</span>
+               </motion.div>
+            </div>
+
+            <motion.div 
+              key={`desc-${period}`}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="mt-6 text-center text-sm text-stone-600 max-w-lg min-h-[3rem] italic bg-stone-100 p-3 rounded-md border border-stone-200"
+            >
+                "{content.desc}"
+            </motion.div>
+          </div>
+        );
+      };
+
+      const UrbanizationChart = () => {
+        const data = [
+          { year: '1950', val: 25, label: 'DP Era Begins' },
+          { year: '1960', val: 32, label: '1st Migration Wave' },
+          { year: '1970', val: 40, label: 'Politicization' },
+          { year: '1980', val: 44, label: 'Post-Coup' },
+          { year: '1990', val: 59, label: 'Rise of Islamism' },
+        ];
+
+        return (
+          <div className="p-8 bg-ink text-paper-light rounded-xl border border-stone-700 shadow-lg">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                  <h3 className="font-serif text-xl text-white">The Urban Shift</h3>
+                  <p className="text-stone-400 text-xs uppercase tracking-widest mt-1">Urban Population %</p>
+              </div>
+              <Building2 className="text-stone-500" />
+            </div>
+
+            <div className="relative h-64 w-full flex items-end justify-between px-2 gap-4">
+                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 z-0">
+                   {[60, 45, 30, 15, 0].map(y => (
+                       <div key={y} className="w-full h-px bg-white flex items-center">
+                           <span className="text-[9px] text-stone-500 -ml-6">{y}%</span>
+                       </div>
+                   ))}
+                </div>
+
+                {data.map((d, i) => (
+                    <div key={d.year} className="flex flex-col items-center gap-3 flex-1 relative z-10 group h-full justify-end">
+                        <motion.div 
+                          initial={{ height: 0 }}
+                          whileInView={{ height: `${(d.val / 65) * 100}%` }}
+                          transition={{ duration: 1, delay: i * 0.1 }}
+                          className="w-full max-w-[40px] bg-stone-200 hover:bg-white transition-colors rounded-t-sm relative shadow-md flex flex-col justify-end items-center pb-2"
+                        >
+                          <motion.span 
+                              initial={{ opacity: 0 }}
+                              whileInView={{ opacity: 1 }}
+                              transition={{ delay: 0.5 + (i * 0.1) }}
+                              className="text-xs font-bold text-ink mb-auto mt-2"
+                          >
+                              {d.val}%
+                          </motion.span>
+                        </motion.div>
+
+                        <div className="text-center">
+                          <span className="text-xs font-bold font-mono text-stone-300 block">{d.year}</span>
+                          <span className="text-[9px] text-stone-500 hidden sm:block absolute bottom-[-20px] w-[80px] left-1/2 -translate-x-1/2 leading-tight text-center">{d.label}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <div className="h-4 sm:h-0"></div>
+          </div>
+        );
+      };
+
+      const TimelineComponent = () => {
+          const events = [
+              { year: 1923, title: "Republic Proclaimed", desc: "Foundation of modern secular state." },
+              { year: 1945, title: "Land Reform & Multi-Party", desc: "Beginning of rural integration." },
+              { year: 1950, title: "DP Victory", desc: "Periphery comes to power via Menderes." },
+              { year: 1960, title: "Military Coup", desc: "Reaction of the established elite." },
+              { year: 1980, title: "Sept 12 Intervention", desc: "Turkish-Islamic Synthesis adopted." },
+              { year: 2002, title: "AKP Era", desc: "Islamists absorbed into establishment." },
+          ];
+
+          return (
+              <div className="w-full overflow-x-auto py-8">
+                  <div className="flex min-w-max gap-0">
+                      {events.map((ev, i) => (
+                          <div key={ev.year} className="relative w-48 pt-8 group">
+                              <div className="absolute top-0 left-0 w-full h-0.5 bg-stone-300 group-hover:bg-ink-accent transition-colors"></div>
+                              <div className="absolute top-[-5px] left-0 w-3 h-3 rounded-full bg-stone-400 group-hover:bg-ink-accent transition-colors border-2 border-white"></div>
+                              
+                              <div className="pr-4">
+                                  <span className="text-2xl font-serif text-stone-300 group-hover:text-ink transition-colors font-bold">{ev.year}</span>
+                                  <h4 className="text-sm font-bold text-ink mt-2 mb-1">{ev.title}</h4>
+                                  <p className="text-xs text-stone-500 leading-tight">{ev.desc}</p>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+          )
+      }
+
+      // --- APP COMPONENT ---
+
+      const App = () => {
+        const [scrolled, setScrolled] = useState(false);
+        const [menuOpen, setMenuOpen] = useState(false);
+
+        useEffect(() => {
+          const handleScroll = () => setScrolled(window.scrollY > 50);
+          window.addEventListener('scroll', handleScroll);
+          return () => window.removeEventListener('scroll', handleScroll);
+        }, []);
+
+        const scrollToSection = (id) => (e) => {
+          e.preventDefault();
+          setMenuOpen(false);
+          const element = document.getElementById(id);
+          if (element) {
+            const headerOffset = 100;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: "smooth"
+            });
+          }
+        };
+
+        return (
+          <div className="min-h-screen bg-paper-light text-ink selection:bg-ink-accent selection:text-white">
+            
+            {/* Navigation */}
+            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-paper-light/95 backdrop-blur-md shadow-sm py-4 border-b border-stone-200' : 'bg-transparent py-6'}`}>
+              <div className="container mx-auto px-6 flex justify-between items-center">
+                
+                <div className="flex items-center gap-4">
+                    {/* Home / Reset Link */}
+                    <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                        <div className="w-8 h-8 bg-ink-accent rounded-full flex items-center justify-center text-white font-serif font-bold text-xl shadow-sm pb-1 group-hover:bg-ink transition-colors">AK</div>
+                        <span className={`font-serif font-bold text-lg tracking-wide transition-opacity hover:text-ink-accent ${scrolled ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}>
+                            HISTORY OF MODERN TÜRKIYE
+                        </span>
+                    </div>
+
+                    {/* Author Link */}
+                    <a 
+                        href="https://alprnkmbr.github.io/alperenkamber.github.io/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className={`font-normal text-stone-500 text-xs tracking-widest uppercase hover:text-ink-accent transition-colors ml-2 pl-4 border-l border-stone-300 ${scrolled ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}
+                    >
+                        Alperen Kamber
+                    </a>
+                </div>
+
+                <div className="hidden lg:flex items-center gap-6 text-xs font-medium tracking-widest text-stone-600">
+                  <a href="#intro" onClick={scrollToSection('intro')} className="hover:text-ink-accent transition-colors cursor-pointer uppercase">Introduction</a>
+                  <a href="#early-republic" onClick={scrollToSection('early-republic')} className="hover:text-ink-accent transition-colors cursor-pointer uppercase">1923-1945</a>
+                  <a href="#post-wwii" onClick={scrollToSection('post-wwii')} className="hover:text-ink-accent transition-colors cursor-pointer uppercase">1945-1960</a>
+                  <a href="#intervention" onClick={scrollToSection('intervention')} className="hover:text-ink-accent transition-colors cursor-pointer uppercase">1960-1980</a>
+                  <a href="#post-1980" onClick={scrollToSection('post-1980')} className="hover:text-ink-accent transition-colors cursor-pointer uppercase">Post-1980</a>
+                  <a href="#bibliography" onClick={scrollToSection('bibliography')} className="hover:text-ink-accent transition-colors cursor-pointer uppercase">Bibliography</a>
+                </div>
+
+                <button className="lg:hidden text-ink p-2" onClick={() => setMenuOpen(!menuOpen)}>
+                  {menuOpen ? <X /> : <Menu />}
+                </button>
+              </div>
+            </nav>
+
+            {/* Mobile Menu */}
+            {menuOpen && (
+              <div className="fixed inset-0 z-40 bg-paper-light flex flex-col items-center justify-center gap-8 text-xl font-serif animate-fade-in">
+                  <a href="#intro" onClick={scrollToSection('intro')} className="hover:text-ink-accent transition-colors cursor-pointer">Introduction</a>
+                  <a href="#early-republic" onClick={scrollToSection('early-republic')} className="hover:text-ink-accent transition-colors cursor-pointer">Early Republic</a>
+                  <a href="#post-wwii" onClick={scrollToSection('post-wwii')} className="hover:text-ink-accent transition-colors cursor-pointer">Post WWII</a>
+                  <a href="#intervention" onClick={scrollToSection('intervention')} className="hover:text-ink-accent transition-colors cursor-pointer">1960-1980</a>
+                  <a href="#post-1980" onClick={scrollToSection('post-1980')} className="hover:text-ink-accent transition-colors cursor-pointer">Post 1980</a>
+                  <a href="#bibliography" onClick={scrollToSection('bibliography')} className="hover:text-ink-accent transition-colors cursor-pointer">Bibliography</a>
+              </div>
+            )}
+
+            {/* Hero Section */}
+            <header className="relative h-screen flex items-center justify-center overflow-hidden border-b border-stone-200">
+              <HistoryScene />
+              
+              <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(249,248,244,0.8)_0%,rgba(249,248,244,0.4)_100%)]" />
+
+              <div className="relative z-10 container mx-auto px-6 text-center">
+                <div className="inline-block mb-6 px-3 py-1 border border-ink-accent text-ink-accent text-xs tracking-[0.2em] uppercase font-bold rounded-full backdrop-blur-sm bg-white/50">
+                  Political Science & International Relations
+                </div>
+                <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl font-medium leading-tight mb-8 text-ink drop-shadow-sm">
+                  An Unlikely Revolution
+                </h1>
+                <p className="text-xl md:text-3xl font-light italic text-stone-600 mb-8 font-serif">
+                  The Islamic elements in the making and remaking<br/>of modern Türkiye
+                </p>
+                <div className="flex flex-col items-center justify-center gap-2 mb-12">
+                  <div className="w-12 h-0.5 bg-ink-accent opacity-50"></div>
+                  <p className="text-sm font-bold tracking-widest uppercase text-stone-500">Alperen Kamber, Ph.D.</p>
+                  <p className="text-xs text-stone-400">T.C. Yeditepe University</p>
+                </div>
+                
+                <div className="flex justify-center">
+                   <a href="#intro" onClick={scrollToSection('intro')} className="group flex flex-col items-center gap-2 text-sm font-medium text-stone-500 hover:text-ink transition-colors cursor-pointer">
+                      <span>BEGIN READING</span>
+                      <span className="p-2 border border-stone-300 rounded-full group-hover:border-ink transition-colors bg-white/50">
+                          <ArrowDown size={16} />
+                      </span>
+                   </a>
+                </div>
+              </div>
+            </header>
+
+            <main>
+              {/* Abstract & Introduction */}
+              <section id="intro" className="py-24 bg-white">
+                <div className="container mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
+                  <div className="md:col-span-4 sticky top-32">
+                    <div className="inline-block mb-3 text-xs font-bold tracking-widest text-stone-500 uppercase border-b border-ink-accent pb-1">Abstract</div>
+                    <p className="text-stone-600 text-sm leading-relaxed mb-6 italic">
+                      "This paper provides a historical account of the making and remaking of modern Türkiye’s social and political structure from the 1920s towards the 2000s... specifically examining the role of Islamic elements within this evolution."
+                    </p>
+                    <div className="space-y-2">
+                       <div className="text-xs font-bold text-stone-900 uppercase">Keywords</div>
+                       <div className="flex flex-wrap gap-2">
+                          {['Islamism', 'Modernisation', 'Passive Revolution', 'Turkish Politics'].map(tag => (
+                              <span key={tag} className="px-2 py-1 bg-stone-100 text-stone-600 text-[10px] uppercase tracking-wide rounded-sm">{tag}</span>
+                          ))}
+                       </div>
+                    </div>
+                  </div>
+                  
+                  <div className="md:col-span-8 text-lg text-ink leading-relaxed space-y-8 font-serif">
+                    <p>
+                      <span className="text-6xl float-left mr-4 mt-[-12px] font-serif text-ink-accent">D</span>uring the 2017 referendum campaign, Turkish President Recep Tayyip Erdoğan declared the vote a “revolution” in the history of modern Türkiye. While vague at the time, the development of Islamism in Türkiye has revealed itself not as a classic revolution (like in France or Russia), but through what <strong className="text-ink-accent">Cihan Tuğal</strong> calls a "Passive Revolution".
+                    </p>
+                    
+                    <div className="bg-paper-DEFAULT p-8 rounded-sm border-l-4 border-ink-accent my-8">
+                      <Quote className="text-stone-400 mb-4" size={24} />
+                      <p className="italic text-stone-700 mb-4">
+                         "Unlike classic revolutions... in a passive revolution popular sectors are mobilized with revolutionary discourses and strategies only to reinforce existing patterns of domination."
+                      </p>
+                      <p className="text-sm font-bold text-stone-500 text-right">— Concept derived from Antonio Gramsci</p>
+                    </div>
+
+                    <p>
+                      The Turkish experience with "moderate Islam" presents a case where former Islamist radicals were gradually brought into the fold of neoliberalism, secularism, and Western domination. As Erdoğan stated when asked about party politics: <em>“we are not looking for followers to a (dervish) lodge.”</em>
+                    </p>
+                    
+                    <p>
+                       Economic realities played a crucial role. As Islamists engaged in trade and ownership, radicalism was undermined. To understand this evolution, we analyze four distinct periods in Turkish history.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* 1923-1945: Early Republic */}
+              <section id="early-republic" className="py-24 bg-paper-DEFAULT border-t border-stone-200">
+                  <div className="container mx-auto px-6">
+                      <div className="mb-16 max-w-3xl">
+                          <div className="flex items-center gap-4 mb-4">
+                              <span className="text-5xl font-serif text-stone-300 font-bold">01</span>
+                              <div className="h-px flex-1 bg-stone-300"></div>
+                          </div>
+                          <h2 className="font-serif text-4xl md:text-5xl mb-6 text-ink">Early-Republican Türkiye <span className="block text-2xl text-stone-500 mt-2 font-normal italic">1923 - 1945</span></h2>
+                          <p className="text-lg text-stone-600 leading-relaxed">
+                              The Kemalist movement deliberately undermined traditional sources of authority—the Sultanate and the Caliphate—to build a nation-state based on sovereignty.
+                          </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-16">
+                          <div className="order-2 lg:order-1">
+                              <SocialStructureDiagram />
+                          </div>
+                          <div className="order-1 lg:order-2 space-y-6 text-lg text-stone-700 font-serif">
+                               <p>
+                                  The Ottoman social structure was defined by a "Center-Periphery" divide. The Center consisted of the military-bureaucratic elite and the Ulema (religious scholars). The Periphery held the peasantry, local notables, and religious leaders.
+                               </p>
+                               <p>
+                                  The Republic's reforms were radical:
+                               </p>
+                               <ul className="list-none space-y-3 text-base font-sans text-stone-600 pl-4 border-l border-stone-300">
+                                  <li><strong>1922:</strong> Abolishment of the Sultanate</li>
+                                  <li><strong>1924:</strong> Abolition of the Caliphate & Sharia Ministry</li>
+                                  <li><strong>1925:</strong> Closure of dervish lodges (Tekkes) & Hat Law</li>
+                                  <li><strong>1928:</strong> "Islam" removed from Constitution as State religion</li>
+                                  <li><strong>1932:</strong> Call to prayer (Ezan) changed to Turkish</li>
+                               </ul>
+                               <p>
+                                  Despite these super-structural changes, the "Islam as Religion" remained deeply embedded in the rural social structure, creating a disconnect that would resurface later.
+                               </p>
+                          </div>
+                      </div>
+                  </div>
+              </section>
+
+              {/* 1945-1960: Post WWII */}
+              <section id="post-wwii" className="py-24 bg-white border-t border-stone-200">
+                   <div className="container mx-auto px-6">
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+                          <div className="md:col-span-5">
+                               <div className="sticky top-32">
+                                  <div className="flex items-center gap-4 mb-4">
+                                      <span className="text-5xl font-serif text-stone-200 font-bold">02</span>
+                                      <div className="h-px flex-1 bg-stone-200"></div>
+                                  </div>
+                                  <h2 className="font-serif text-4xl mb-6 text-ink">Post-WWII & Liberalisation <span className="block text-xl text-stone-400 mt-2 font-normal italic">1945 - 1960</span></h2>
+                                  <p className="text-stone-600 mb-8 font-sans">
+                                      Introduction of the multi-party system, the Marshall Plan, and the beginning of mass urbanization changed the social fabric.
+                                  </p>
+                                  <div className="p-6 bg-paper-DEFAULT rounded-sm">
+                                      <h4 className="font-bold uppercase tracking-widest text-xs mb-2 text-ink-accent">Key Concept</h4>
+                                      <h3 className="font-serif text-xl mb-2">Gecekondulaşma</h3>
+                                      <p className="text-sm text-stone-600 italic">
+                                          "Shanty towns" — A rise in urban population that brought peasant culture into urban centers, leading to a surfacing of Islamic sentiment in cities.
+                                      </p>
+                                  </div>
+                               </div>
+                          </div>
+                          <div className="md:col-span-7 space-y-6 text-lg leading-relaxed font-serif text-ink">
+                              <p>
+                                  To join the Western democratic club (and receive aid), Türkiye moved to a multi-party system. The <strong>Democrat Party (DP)</strong> emerged, led by Adnan Menderes, appealing to the neglected rural periphery.
+                              </p>
+                              <p>
+                                  The <strong>Marshall Plan</strong> brought mechanization to agriculture. While productivity soared, manpower became redundant in villages, triggering the country's first great wave of domestic migration.
+                              </p>
+                              <p>
+                                  In a single decade, demographics shifted drastically. The new urban residents lived much as they did in villages, creating a "peasant colouring" in cities. Politicians began catering to this demographic, relaxing secular restrictions:
+                              </p>
+                              <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans text-sm">
+                                   <li className="bg-stone-50 p-3 border border-stone-100">Religious education reintroduced</li>
+                                   <li className="bg-stone-50 p-3 border border-stone-100">Faculty of Theology established</li>
+                                   <li className="bg-stone-50 p-3 border border-stone-100">Call to prayer reverted to Arabic</li>
+                                   <li className="bg-stone-50 p-3 border border-stone-100">Religious readings on State Radio</li>
+                              </ul>
+                              <p>
+                                  Additionally, the 1950s saw the rise of the <strong>Engineer</strong> class as a path for upward social mobility (e.g., Süleyman Demirel), blending technical education with conservative values.
+                              </p>
+                          </div>
+                      </div>
+                   </div>
+              </section>
+
+              {/* 1960-1980: Interventions */}
+              <section id="intervention" className="py-24 bg-stone-900 text-stone-300 relative overflow-hidden">
+                   {/* Background texture */}
+                   <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                   
+                   <div className="container mx-auto px-6 relative z-10">
+                      <div className="flex flex-col md:flex-row gap-16 items-center">
+                          <div className="flex-1">
+                              <div className="flex items-center gap-4 mb-4">
+                                  <span className="text-5xl font-serif text-stone-700 font-bold">03</span>
+                                  <div className="h-px flex-1 bg-stone-700"></div>
+                              </div>
+                              <h2 className="font-serif text-4xl md:text-5xl mb-6 text-stone-100">Military Interventions <span className="block text-2xl text-stone-500 mt-2 font-normal italic">1960 - 1980</span></h2>
+                              
+                              <div className="space-y-6 text-lg font-serif leading-relaxed">
+                                  <p>
+                                      The 1960 coup overthrew the DP regime, driven by the traditional Republican elite (military, bureaucracy, intelligentsia). However, the 1961 Constitution was paradoxically liberal, allowing diverse ideologies to flourish.
+                                  </p>
+                                  <p>
+                                      <strong>Politicization of Islam:</strong> In the Cold War context, the state began to view Islam as a weapon against Communism. Associations like the "Association to Combat Terrorism" rose, involving figures like Fethullah Gülen.
+                                  </p>
+                                  <p>
+                                      By the 1970s, Islamism organized politically. Necmettin Erbakan founded the <strong>National Order Party (1970)</strong> and later the <strong>National Salvation Party</strong>, propagating the "National Vision" (Milli Görüş).
+                                  </p>
+                              </div>
+                          </div>
+                          <div className="flex-1 w-full">
+                              <UrbanizationChart />
+                              <p className="text-xs text-center mt-4 text-stone-500 font-sans uppercase tracking-widest">
+                                  Rapid Urbanization created distinct "Rural", "Urban", and "Urban-Modern" identities (Metin Heper).
+                              </p>
+                          </div>
+                      </div>
+                   </div>
+              </section>
+
+              {/* Post-1980 */}
+              <section id="post-1980" className="py-24 bg-paper-DEFAULT border-t border-stone-200">
+                  <div className="container mx-auto px-6">
+                       <div className="max-w-4xl mx-auto text-center mb-16">
+                          <span className="text-sm font-bold text-ink-accent uppercase tracking-[0.2em] mb-4 block">The Synthesis</span>
+                          <h2 className="font-serif text-4xl md:text-6xl mb-8 text-ink">Post-1980 & The Rise of AKP</h2>
+                          <p className="text-xl text-stone-600 font-serif italic">
+                              "The Turkish-Islamic Synthesis"
+                          </p>
+                       </div>
+
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                           <div className="bg-white p-8 shadow-sm border-t-4 border-ink-accent">
+                               <h3 className="font-bold text-lg mb-4">1980 Coup</h3>
+                               <p className="text-stone-600 text-sm leading-relaxed">
+                                   The military intervention depoliticized the youth and crushed the left. Conservatism became dominant. The state promoted a "Turkish-Islamic Synthesis" to homogenize society.
+                               </p>
+                           </div>
+                           <div className="bg-white p-8 shadow-sm border-t-4 border-stone-400">
+                               <h3 className="font-bold text-lg mb-4">The Özal Era</h3>
+                               <p className="text-stone-600 text-sm leading-relaxed">
+                                   Turgut Özal (Motherland Party) integrated the economy into global markets. The "Anatolian Tigers"—conservative middle-men—prospered in the post-Fordist environment.
+                               </p>
+                           </div>
+                           <div className="bg-white p-8 shadow-sm border-t-4 border-turk-turquoise">
+                               <h3 className="font-bold text-lg mb-4">Justice & Development</h3>
+                               <p className="text-stone-600 text-sm leading-relaxed">
+                                   The AKP (2001) emerged from the reformist wing of political Islam, embracing a comprehensive program that carried them to power in 2002, absorbing the Islamist challenge into the establishment.
+                               </p>
+                           </div>
+                       </div>
+                       
+                       <div className="max-w-4xl mx-auto">
+                          <TimelineComponent />
+                       </div>
+
+                       <div className="mt-16 p-8 bg-stone-200 rounded-lg text-center">
+                           <p className="font-serif text-xl text-ink mb-4">
+                               "In line with the above argument, in a country like Türkiye where modernising reforms and revolutions have about a two-century-old history, Islamism seems to be absorbed by the establishment..."
+                           </p>
+                           <p className="text-sm font-bold uppercase tracking-widest text-stone-500">Conclusion</p>
+                       </div>
+                  </div>
+              </section>
+
+              {/* Bibliography */}
+              <section id="bibliography" className="py-24 bg-white border-t border-stone-200">
+                  <div className="container mx-auto px-6">
+                      <div className="flex items-center gap-4 mb-12">
+                          <span className="text-5xl font-serif text-stone-200 font-bold">Bibliography</span>
+                          <div className="h-px flex-1 bg-stone-200"></div>
+                      </div>
+                      <h2 className="font-serif text-3xl md:text-4xl mb-12 text-ink"></h2>
+                      <div className="grid grid-cols-1 gap-6 text-sm leading-relaxed font-serif text-stone-600 max-w-4xl">
+                          {[
+                              "Ahmad, Feroz. ‘Islamic Reassertion in Turkey. Third World Quarterly 10, no. 2 (1988): 750–69.",
+                              "Ahmad, Feroz. The Making of Modern Turkey. 1st edition. London ; New York: Routledge, 1993.",
+                              "Ahmad, Feroz. Turkey: The Quest for Identity. 2nd Edition, Revised. London: Oneworld Publications, 2014.",
+                              "Ayata, Sencer. ‘Patronage, Party, and State: The Politicization of Islam in Turkey. Middle East Journal 50, no. 1 (1996): 40–56.",
+                              "Göle, Nilüfer. ‘Secularism and Islamism in Turkey: The Making of Elites and Counter-Elites’. Middle East Journal 51, no. 1 (1997): 46–58.",
+                              "Gulalp, H. ‘Globalization and Political Islam: The Social Bases of Turkey’s Welfare Party’. International Journal of Middle East Studies 33, no. 3 (2001): 433–48.",
+                              "Habertürk. ‘Cumhurbaşkanı Erdoğan, ’İslamcılık tartışması’na nokta koydu: Tekkeye mürit aramıyoruz’, 3 May 2017.",
+                              "Heper, Metin. ‘Islam, Polity and Society in Turkey: A Middle Eastern Perspective’. Middle East Journal 35, no. 3 (1981): 345–63.",
+                              "Karpat, Kemal H. ‘Political Developments in Turkey, 1950-70’. Middle Eastern Studies 8, no. 3 (1972): 349–75.",
+                              "Leder, Arnold. ‘Party Competition in Rural Turkey: Agent of Change or Defender of Traditional Rule?’ Middle Eastern Studies 15, no. 1 (1979): 82–105.",
+                              "Lewis, Bernard. ‘Islamic Revival in Turkey’. International Affairs (Royal Institute of International Affairs 1944-) 28, no. 1 (1952): 38–48.",
+                              "Milliyet. ‘Cumhurbaşkanı Erdoğan Trabzon’da’, 3 April 2017.",
+                              "Reed, Howard A. ‘Revival of Islam in Secular Turkey’. Middle East Journal 8, no. 3 (1954): 267–82.",
+                              "Salt, Jeremy. ‘Nationalism and the Rise of Muslim Sentiment in Turkey’. Middle Eastern Studies 31, no. 1 (1 January 1995): 13–27.",
+                              "Thomas, Lewis V. ‘Recent Developments in Turkish Islam’. Middle East Journal 6, no. 1 (1952): 22–40.",
+                              "Tuğal, Cihan. Passive Revolution: Absorbing the Islamic Challenge to Capitalism. Stanford, Calif, 2009.",
+                              "World Bank. ‘Rise of the Anatolian Tigers: Turkey Urbanization Review’, 2015."
+                          ].map((item, i) => (
+                              <div key={i} className="pl-8 -indent-8 hover:text-ink transition-colors cursor-default">
+                                  {item}
+                              </div>
+                          ))}
+                      </div>
+                  </div>
+              </section>
+            </main>
+
+            <footer className="bg-ink text-stone-400 py-16 border-t border-stone-800">
+              <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+                  <div className="text-center md:text-left">
+                      <div className="text-white font-serif font-bold text-2xl mb-2">An Unlikely Revolution</div>
+                      <p className="text-sm">The Islamic elements in the making and remaking of modern Türkiye</p>
+                  </div>
+                  <div className="text-right text-xs">
+                      <p>Based on the paper by Alperen Kamber</p>
+                      <p className="mt-1">ORCID: 0009-0001-9496-2918</p>
+                  </div>
+              </div>
+            </footer>
+          </div>
+        );
+      };
+      
+      const root = createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
